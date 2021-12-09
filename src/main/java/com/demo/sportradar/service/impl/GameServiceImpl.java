@@ -1,6 +1,7 @@
 package com.demo.sportradar.service.impl;
 
 import com.demo.sportradar.dto.Game;
+import com.demo.sportradar.dto.Team;
 import com.demo.sportradar.entity.GameEntity;
 import com.demo.sportradar.repository.GameRepository;
 import com.demo.sportradar.service.GameService;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class GameServiceImpl implements GameService {
@@ -29,7 +31,9 @@ public class GameServiceImpl implements GameService {
     @Override
     public Game saveGame(Game game) {
         GameEntity gameEntity = mapper.convertValue(game, GameEntity.class);
-        gameEntity.setTotalScore(gameEntity.getHomeTeamScore() + gameEntity.getAwayTeamScore());
+
+        gameEntity.setTotalScore(gameEntity.getHomeTeam().getScore() + gameEntity.getAwayTeam().getScore());
+
         return mapper.convertValue(gameRepository.save(gameEntity), Game.class);
     }
 
@@ -39,9 +43,14 @@ public class GameServiceImpl implements GameService {
      */
     @Override
     public List<Game> getGames() {
-        List<GameEntity> gameEntityList = gameRepository.findAll();
-        Comparator<GameEntity> multipleComparator = Comparator.comparing(GameEntity::getTotalScore).thenComparing(Comparator.comparing(GameEntity::getId));
-        List<Game> gameList = gameEntityList.stream().sorted(multipleComparator.reversed()).map(this::convertGameEntityToGame).collect(Collectors.toList());
+        Comparator<GameEntity> gameEntityComparator = Comparator.comparing(GameEntity::getTotalScore)
+                .thenComparing(GameEntity::getId);
+
+        List<Game> gameList = StreamSupport.stream(gameRepository.findAll().spliterator(), false)
+                .sorted(gameEntityComparator.reversed())
+                .map(this::convertGameEntityToGame)
+                .collect(Collectors.toList());
+
         return gameList;
     }
 
@@ -52,8 +61,9 @@ public class GameServiceImpl implements GameService {
     public void deleteGames() {
         gameRepository.deleteAll();
     }
-
     private Game convertGameEntityToGame(GameEntity gameEntity) {
-        return new Game(gameEntity.getHomeTeamName(), gameEntity.getHomeTeamScore(), gameEntity.getAwayTeamName(), gameEntity.getAwayTeamScore());
+        return new Game(gameEntity.getId(),
+                new Team(gameEntity.getHomeTeam().getName(), gameEntity.getHomeTeam().getScore()),
+                new Team(gameEntity.getAwayTeam().getName(), gameEntity.getAwayTeam().getScore()));
     }
 }
