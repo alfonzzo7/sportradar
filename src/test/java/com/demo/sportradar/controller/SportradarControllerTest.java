@@ -1,6 +1,7 @@
 package com.demo.sportradar.controller;
 
 import com.demo.sportradar.dto.Game;
+import com.demo.sportradar.dto.Team;
 import com.demo.sportradar.service.GameService;
 import org.hamcrest.core.Is;
 import org.junit.Test;
@@ -38,11 +39,11 @@ public class SportradarControllerTest {
 
     @Test
     public void whenPostRequestToGameAndValidGame_thenCorrectResponse() throws Exception {
-        Game game = new Game("Mexico", 0, "Canada", 5);
+        Game game = new Game(null, new Team("Mexico", 0), new Team("Canada", 5));
         String gameJson = mappingJackson2HttpMessageConverter.getObjectMapper()
                 .writeValueAsString(game);
 
-        mockMvc.perform(post("/api/v1/setGame")
+        mockMvc.perform(post("/api/v1/games")
                         .content(gameJson)
                         .contentType(APPLICATION_JSON))
                 .andExpect(status().isCreated());
@@ -50,26 +51,26 @@ public class SportradarControllerTest {
 
     @Test
     public void whenPostRequestToGameAndInvalidGame_thenCorrectResponse() throws Exception {
-        Game game = new Game("", 0, "Canada", -5);
+        Game game = new Game(null, new Team("", 0), new Team("Canada", -5));
         String gameJson = mappingJackson2HttpMessageConverter.getObjectMapper()
                 .writeValueAsString(game);
 
-        mockMvc.perform(post("/api/v1/setGame")
+        mockMvc.perform(post("/api/v1/games")
                         .content(gameJson)
                         .contentType(APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.homeTeamName", Is.is("must not be blank")))
-                .andExpect(jsonPath("$.awayTeamScore", Is.is("must be greater than or equal to 0")));
+                .andExpect(jsonPath("$.['homeTeam.name']", Is.is("must not be blank")))
+                .andExpect(jsonPath("$.['awayTeam.score']", Is.is("must be greater than or equal to 0")));
     }
 
     @Test
     public void whenGetRequestScoreBoard_thenCorrectResponse() throws Exception {
-        List<Game> gameList = List.of(new Game("Mexico", 0, "Canada", 5));
+        List<Game> gameList = List.of(new Game(null, new Team("Mexico", 0), new Team("Canada", 5)));
         given(gameService.getGames()).willReturn(gameList);
 
-        mockMvc.perform(get("/api/v1/getScoreBoard"))
+        mockMvc.perform(get("/api/v1/games"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].homeTeamName", Is.is(gameList.get(0).getHomeTeamName())));
+                .andExpect(jsonPath("$[0].homeTeam.name", Is.is(gameList.get(0).getHomeTeam().getName())));
     }
 
 }
