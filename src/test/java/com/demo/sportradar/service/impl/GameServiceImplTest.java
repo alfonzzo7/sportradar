@@ -1,7 +1,9 @@
 package com.demo.sportradar.service.impl;
 
 import com.demo.sportradar.dto.Game;
+import com.demo.sportradar.dto.Team;
 import com.demo.sportradar.entity.GameEntity;
+import com.demo.sportradar.entity.TeamEntity;
 import com.demo.sportradar.repository.GameRepository;
 import com.demo.sportradar.service.GameService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,7 +55,10 @@ public class GameServiceImplTest {
     private static final String URUGUAY   = "Uruguay";
 
     private Game saveGame(Game game) {
-        GameEntity gameEntity = new GameEntity(null, game.getHomeTeamName(), game.getHomeTeamScore(), game.getAwayTeamName(), game.getAwayTeamScore(), game.getHomeTeamScore() + game.getAwayTeamScore());
+        GameEntity gameEntity = new GameEntity(null,
+                new TeamEntity(null, game.getHomeTeam().getName(), game.getHomeTeam().getScore()),
+                new TeamEntity(null, game.getAwayTeam().getName(), game.getAwayTeam().getScore()),
+                game.getHomeTeam().getScore() + game.getAwayTeam().getScore());
         when(gameRepository.save(any(GameEntity.class))).thenReturn(gameEntity);
         when(objectMapper.convertValue(any(Game.class), eq(GameEntity.class))).thenReturn(gameEntity);
         when(objectMapper.convertValue(any(GameEntity.class), eq(Game.class))).thenReturn(game);
@@ -63,7 +68,7 @@ public class GameServiceImplTest {
 
     @Test
     public void whenSaveGame() {
-        Game game = new Game("Mexico", 0, "Canada", 5);
+        Game game = new Game(1L, new Team("Mexico", 0), new Team("Canada", 5));
         Game gameSaved = saveGame(game);
         assertEquals(gameSaved, game);
     }
@@ -71,28 +76,28 @@ public class GameServiceImplTest {
     @Test
     public void whenGetGames(){
         List<GameEntity> gameEntityList = List.of(
-                new GameEntity(1L, MEXICO, 0, CANADA, 5, 5),
-                new GameEntity(2L, SPAIN, 10, BRAZIL, 2, 12),
-                new GameEntity(3L, GERMANY, 2, FRANCE, 2, 4),
-                new GameEntity(4L, URUGUAY, 6, ITALY, 6, 12),
-                new GameEntity(5L, ARGENTINA, 3, AUSTRALIA, 1, 4)
+                new GameEntity(1L, new TeamEntity(null, MEXICO, 0), new TeamEntity(null, CANADA, 5), 5),
+                new GameEntity(2L, new TeamEntity(null, SPAIN, 10), new TeamEntity(null, BRAZIL, 2), 12),
+                new GameEntity(3L, new TeamEntity(null, GERMANY, 2), new TeamEntity(null, FRANCE, 2), 4),
+                new GameEntity(4L, new TeamEntity(null, URUGUAY, 6), new TeamEntity(null, ITALY, 6), 12),
+                new GameEntity(5L, new TeamEntity(null, ARGENTINA, 3), new TeamEntity(null, AUSTRALIA, 1), 4)
         );
 
         when(gameRepository.findAll()).thenReturn(gameEntityList);
         List<Game> gameList = gameService.getGames();
-        assertEquals(gameList.get(0).getHomeTeamName(), URUGUAY);
-        assertEquals(gameList.get(0).getAwayTeamName(), ITALY);
+        assertEquals(gameList.get(0).getHomeTeam().getName(), URUGUAY);
+        assertEquals(gameList.get(0).getAwayTeam().getName(), ITALY);
 
-        assertEquals(gameList.get(1).getHomeTeamName(), SPAIN);
-        assertEquals(gameList.get(1).getAwayTeamName(), BRAZIL);
+        assertEquals(gameList.get(1).getHomeTeam().getName(), SPAIN);
+        assertEquals(gameList.get(1).getAwayTeam().getName(), BRAZIL);
 
-        assertEquals(gameList.get(2).getHomeTeamName(), MEXICO);
-        assertEquals(gameList.get(2).getAwayTeamName(), CANADA);
+        assertEquals(gameList.get(2).getHomeTeam().getName(), MEXICO);
+        assertEquals(gameList.get(2).getAwayTeam().getName(), CANADA);
 
-        assertEquals(gameList.get(3).getHomeTeamName(), ARGENTINA);
-        assertEquals(gameList.get(3).getAwayTeamName(), AUSTRALIA);
+        assertEquals(gameList.get(3).getHomeTeam().getName(), ARGENTINA);
+        assertEquals(gameList.get(3).getAwayTeam().getName(), AUSTRALIA);
 
-        assertEquals(gameList.get(4).getHomeTeamName(), GERMANY);
-        assertEquals(gameList.get(4).getAwayTeamName(), FRANCE);
+        assertEquals(gameList.get(4).getHomeTeam().getName(), GERMANY);
+        assertEquals(gameList.get(4).getAwayTeam().getName(), FRANCE);
     }
 }
