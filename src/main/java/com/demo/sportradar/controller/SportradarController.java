@@ -29,18 +29,17 @@ public class SportradarController {
      * @param game
      * @return Game
      */
-    @PostMapping(value = "/setGame", produces = APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/games", produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(CREATED)
     public Game setGame(@Validated @RequestBody Game game) {
-        gameService.saveGame(game);
-        return game;
+        return gameService.saveGame(game);
     }
 
     /**
      * Get the score board
      * @return List<Game>
      */
-    @GetMapping(value = "/getScoreBoard", produces = APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/games", produces = APPLICATION_JSON_VALUE)
     public List<Game> getScoreBoard() {
         return gameService.getGames();
     }
@@ -48,7 +47,7 @@ public class SportradarController {
     /**
      * Delete the score board
      */
-    @DeleteMapping(value = "/deleteScoreBoard")
+    @DeleteMapping(value = "/games")
     public void deleteScoreBoard() {
         gameService.deleteGames();
     }
